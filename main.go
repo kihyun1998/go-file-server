@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	fileserver "github.com/kihyun1998/go-file-server/file-server"
 )
@@ -14,6 +15,14 @@ func main() {
 	}
 
 	r := gin.Default()
+
+	// CORS 설정
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"GET", "POST", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept"}
+	r.Use(cors.New(config))
+
 	r.MaxMultipartMemory = 0 // 파일 크기 제한 해제
 
 	r.POST("/upload", server.UploadHandler)
