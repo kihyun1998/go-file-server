@@ -1,8 +1,6 @@
 package fileserver
 
 import (
-	"encoding/base64"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -32,8 +30,8 @@ func (s *FileServer) DownloadBase64Handler(c *gin.Context) {
 		return
 	}
 
-	// 파일 열기
-	file, err := os.Open(filePath)
+	// 파일 읽기
+	fileData, err := os.ReadFile(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			c.JSON(http.StatusNotFound, Response{
@@ -43,15 +41,11 @@ func (s *FileServer) DownloadBase64Handler(c *gin.Context) {
 		} else {
 			c.JSON(http.StatusInternalServerError, Response{
 				IsOk:  false,
-				Error: "Failed to open file",
+				Error: "Failed to read file",
 			})
 		}
 		return
 	}
-	defer file.Close()
-
-	// base64 디코더 생성
-	decoder := base64.NewDecoder(base64.StdEncoding, file)
 
 	// Content-Type 설정
 	contentType := "application/octet-stream"
@@ -75,8 +69,8 @@ func (s *FileServer) DownloadBase64Handler(c *gin.Context) {
 	c.Header("Content-Disposition", "attachment; filename="+filename)
 	c.Header("Content-Type", contentType)
 
-	// 디코딩된 데이터를 직접 응답으로 전송
-	if _, err := io.Copy(c.Writer, decoder); err != nil {
+	// 파일 데이터를 직접 전송
+	if _, err := c.Writer.Write(fileData); err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			IsOk:  false,
 			Error: "Failed to send file",
