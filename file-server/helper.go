@@ -7,6 +7,19 @@ import (
 	"strings"
 )
 
+type ResponseData struct {
+	Path     string `json:"path,omitempty"`
+	Filename string `json:"filename,omitempty"`
+	FileType string `json:"fileType,omitempty"`
+}
+
+type Response struct {
+	IsOk    bool         `json:"isOk"`
+	Message string       `json:"message,omitempty"`
+	Error   string       `json:"error,omitempty"`
+	Data    ResponseData `json:"data,omitempty"`
+}
+
 func setupDirectory(path string) error {
 	directories := []string{
 		filepath.Join(path, "images"),

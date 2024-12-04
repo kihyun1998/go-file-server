@@ -10,13 +10,13 @@ import (
 func (s *FileServer) UploadHandler(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "fail to read file.",
+		c.JSON(http.StatusBadRequest, Response{
+			IsOk:  false,
+			Error: "Failed to read file",
 		})
 		return
 	}
 
-	// 파일 타입 확인
 	fileType := "others"
 	if isImage(file.Filename) {
 		fileType = "images"
@@ -24,30 +24,32 @@ func (s *FileServer) UploadHandler(c *gin.Context) {
 		fileType = "videos"
 	}
 
-	// 저장 경로 생성
 	uploadPath := getUploadPath(s.uploadPath, fileType)
 	filename := filepath.Join(uploadPath, file.Filename)
 
-	// 파일 저장
 	if err := c.SaveUploadedFile(file, filename); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "fail to save file.",
+		c.JSON(http.StatusInternalServerError, Response{
+			IsOk:  false,
+			Error: "Failed to save file",
 		})
 		return
 	}
 
-	// 파일 권한 설정
 	if err := setFilePermissions(filename); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "file to set file permissions.",
+		c.JSON(http.StatusInternalServerError, Response{
+			IsOk:  false,
+			Error: "Failed to set file permissions",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"isOK":     true,
-		"message":  "success file upload.",
-		"filename": file.Filename,
-		"path":     filepath.Join(fileType, file.Filename),
+	c.JSON(http.StatusOK, Response{
+		IsOk:    true,
+		Message: "File uploaded successfully",
+		Data: ResponseData{
+			Path:     filepath.Join(fileType, file.Filename),
+			Filename: file.Filename,
+			FileType: fileType,
+		},
 	})
 }
