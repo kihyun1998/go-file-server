@@ -5,23 +5,19 @@
 http://localhost:8080
 ```
 
-## Endpoints
+## Upload Endpoints
 
-### Upload File
-`POST /upload`
+### 1. Upload File
+Upload a file using multipart/form-data.
 
-Upload a file to the server.
+**Endpoint:** `POST /upload`
 
-#### Request
-- **Content-Type:** `multipart/form-data`
-- **Form Field:** `file`
+**Content-Type:** `multipart/form-data`
 
-#### cURL Example
-```bash
-curl -X POST -F "file=@C:\path\to\your\image.jpg" http://localhost:8080/upload
-```
+**Request Body:**
+- `file`: File to upload (form-data)
 
-#### Success Response (200 OK)
+**Response:**
 ```json
 {
     "isOk": true,
@@ -34,7 +30,7 @@ curl -X POST -F "file=@C:\path\to\your\image.jpg" http://localhost:8080/upload
 }
 ```
 
-#### Error Response (400/500)
+**Error Response:**
 ```json
 {
     "isOk": false,
@@ -42,28 +38,59 @@ curl -X POST -F "file=@C:\path\to\your\image.jpg" http://localhost:8080/upload
 }
 ```
 
-### Download File
-`GET /download/{type}/{filename}`
+### 2. Upload Base64 File
+Upload a file using base64 encoded data.
 
-Download a specific file from the server.
+**Endpoint:** `POST /upload/base64`
 
-#### Parameters
-| Name     | Type   | Description                          |
-|----------|--------|--------------------------------------|
-| type     | string | File type (images, videos, others)   |
-| filename | string | Name of the file to download         |
+**Content-Type:** `application/json`
 
-#### cURL Example
-```bash
-curl -O http://localhost:8080/download/images/example.jpg
+**Request Body:**
+```json
+{
+    "fileData": "base64EncodedString",
+    "filename": "example.jpg"
+}
 ```
 
-#### Browser Access
-```
-http://localhost:8080/download/images/example.jpg
+**Response:**
+```json
+{
+    "isOk": true,
+    "message": "File uploaded successfully",
+    "data": {
+        "path": "images/example.jpg",
+        "filename": "example.jpg",
+        "fileType": "images"
+    }
+}
 ```
 
-#### Error Response (400/404)
+**Error Response:**
+```json
+{
+    "isOk": false,
+    "error": "Invalid base64 data"
+}
+```
+
+## Download Endpoints
+
+### 1. Download File
+Download a file directly.
+
+**Endpoint:** `GET /download/:type/:filename`
+
+**Parameters:**
+- `type`: File type (images, videos, others)
+- `filename`: Name of the file to download
+
+**Response:**
+- File will be downloaded directly
+- Content-Type will be set based on file type
+- Content-Disposition header will be set for attachment
+
+**Error Response:**
 ```json
 {
     "isOk": false,
@@ -71,25 +98,59 @@ http://localhost:8080/download/images/example.jpg
 }
 ```
 
-## Supported File Types
+### 2. Download Base64 File
+Download a file with base64 encoding.
 
-### Images
-- `.jpg`
-- `.jpeg`
-- `.png`
-- `.gif`
+**Endpoint:** `GET /download/base64/:type/:filename`
 
-### Videos
-- `.mp4`
-- `.avi`
-- `.mov`
-- `.wmv`
+**Parameters:**
+- `type`: File type (images, videos, others)
+- `filename`: Name of the file to download
 
-### Others
-- All other file extensions are stored in the 'others' category
+**Response:**
+- File data will be sent with appropriate Content-Type header
+- Content-Disposition header will be set for attachment
 
-## Testing Tools
-- **Postman**
-- **cURL**
-- Web Browser (for downloads)
-- Any HTTP client that supports multipart/form-data
+**Error Response:**
+```json
+{
+    "isOk": false,
+    "error": "File not found"
+}
+```
+
+## File Types
+The server automatically categorizes files into the following types:
+- `images`: .jpg, .jpeg, .png, .gif
+- `videos`: .mp4, .avi, .mov, .wmv
+- `others`: Any other file type
+
+## Additional Information
+
+### CORS Configuration
+- Allows all origins
+- Allowed Methods: GET, POST, OPTIONS
+- Allowed Headers: Origin, Content-Type, Accept
+
+### File Size Limits
+- No file size limit is set (`MaxMultipartMemory = 0`)
+
+### Storage Location
+- Files are stored in the `./uploads` directory
+- Subdirectories are automatically created for different file types:
+  - `./uploads/images`
+  - `./uploads/videos`
+  - `./uploads/others`
+
+### File Permissions
+- Linux: 755 for directories, 644 for files
+- Windows: 666 for both directories and files
+
+### Error Handling
+All endpoints return standardized error responses in the following format:
+```json
+{
+    "isOk": false,
+    "error": "Error message description"
+}
+```
