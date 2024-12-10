@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>개봉교회 포토부스</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+    </head>
+<body>
+    <header class="header">
+        <div class="header-logo">
+            <img src="/static/asset/logo.png" alt="인생네컷" class="logo-image">
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="photo-frame">
+            <h1 class="title">개봉교회 포토부스</h1>
+            
+            <div class="preview-container">
+                <img class="preview-image" id="previewImage" alt="사진 미리보기">
+                <video class="preview-video" id="previewVideo" controls>
+                    브라우저가 비디오 재생을 지원하지 않습니다.
+                </video>
+                <div class="preview-error" id="previewError">
+                    😢 미리보기를 불러올 수 없습니다
+                </div>
+                <div class="loading" id="loadingSpinner">
+                    불러오는 중... 💝
+                </div>
+            </div>
+            
+            <p class="preview-message" id="previewMessage"></p>
+            
+            <button class="download-btn photo-btn" id="photoBtn" onclick="downloadFile('images')" disabled>
+                사진 다운로드 📸
+            </button>
+            <button class="download-btn video-btn" id="videoBtn" onclick="downloadFile('videos')" disabled>
+                동영상 다운로드 🎥
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif'];
+        const VIDEO_EXTENSIONS = ['mp4', 'avi', 'mov', 'wmv'];
+        let currentFileType = null;
+        let currentExtension = null;
+
+        async function checkFileExists(type, filename, extensions) {
+            for (const ext of extensions) {
+                try {
+                    const response = await fetch(`/download/${type}/${filename}.${ext}`);
+                    if (response.ok) {
+                        return { exists: true, extension: ext };
+                    }
+                } catch (error) {
+                    console.log(`Failed to check .${ext} file:`, error);
+                }
+            }
+            return { exists: false };
+        }
+
+        async function loadPreview() {
+            const pathParts = window.location.pathname.split('/');
+            const filename = pathParts[pathParts.length - 1];
+            
+            const previewImage = document.getElementById('previewImage');
+            const previewVideo = document.getElementById('previewVideo');
+            const previewError = document.getElementById('previewError');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const photoBtn = document.getElementById('photoBtn');
+            const videoBtn = document.getElementById('videoBtn');
+            const previewMessage = document.getElementById('previewMessage');
+
+            previewImage.style.display = 'none';
+            previewVideo.style.display = 'none';
+            previewError.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+            photoBtn.disabled = true;
+            videoBtn.disabled = true;
+            photoBtn.classList.remove('active');
+            videoBtn.classList.remove('active');
+
+            // 이미지 체크
+            const imageResult = await checkFileExists('images', filename, IMAGE_EXTENSIONS);
+            if (imageResult.exists) {
+                previewImage.src = `/download/images/${filename}.${imageResult.extension}`;
+                previewImage.onload = () => {
+                    previewImage.style.display = 'block';
+                    loadingSpinner.style.display = 'none';
+                    photoBtn.disabled = false;
+                    photoBtn.classList.add('active');
+                    previewMessage.textContent = '사진이 준비되었습니다 💝';
+                    currentFileType = 'images';
+                    currentExtension = imageResult.extension;
+                };
+                previewImage.onerror = () => {
+                    showError();
+                };
+                return;
+            }
+
+            // 비디오 체크
+            const videoResult = await checkFileExists('videos', filename, VIDEO_EXTENSIONS);
+            if (videoResult.exists) {
+                previewVideo.src = `/download/videos/${filename}.${videoResult.extension}`;
+                previewVideo.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+                videoBtn.disabled = false;
+                videoBtn.classList.add('active');
+                previewMessage.textContent = '동영상이 준비되었습니다 💝';
+                currentFileType = 'videos';
+                currentExtension = videoResult.extension;
+                return;
+            }
+
+            showError();
+        }
+
+        function showError() {
+            const previewError = document.getElementById('previewError');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const previewMessage = document.getElementById('previewMessage');
+            
+            previewError.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+            previewMessage.textContent = '파일을 찾을 수 없습니다 😢';
+        }
+
+        async function downloadFile(type) {
+            if (currentFileType !== type) return;
+            
+            const pathParts = window.location.pathname.split('/');
+            const filename = pathParts[pathParts.length - 1];
+            
+            const a = document.createElement('a');
+            a.href = `/download/${type}/${filename}.${currentExtension}`;
+            a.download = `${filename}.${currentExtension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 페이지 로드 시 미리보기 시작
+        window.onload = loadPreview;
+    </script>
+</body>
+</html>
