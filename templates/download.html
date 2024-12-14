@@ -31,12 +31,14 @@
             
             <p class="preview-message" id="previewMessage"></p>
             
-            <button class="download-btn photo-btn" id="photoBtn" onclick="downloadFile('images')" disabled>
-                사진 다운로드 📸
-            </button>
-            <button class="download-btn video-btn" id="videoBtn" onclick="downloadFile('videos')" disabled>
-                동영상 다운로드 🎥
-            </button>
+            <div class="button-container">
+                <button class="download-btn photo-btn" id="photoBtn" onclick="downloadFile('images')" disabled>
+                    사진 다운로드
+                </button>
+                <button class="download-btn video-btn" id="videoBtn" onclick="downloadFile('videos')" disabled>
+                    동영상 다운로드
+                </button>
+            </div>
         </div>
     </div>
 
@@ -90,7 +92,7 @@
                     loadingSpinner.style.display = 'none';
                     photoBtn.disabled = false;
                     photoBtn.classList.add('active');
-                    previewMessage.textContent = '사진이 준비되었습니다 💝';
+                    previewMessage.textContent = '사진이 준비되었습니다.';
                     currentFileType = 'images';
                     currentExtension = imageResult.extension;
                 };
