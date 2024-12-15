@@ -63,20 +63,6 @@ func setFilePermissions(filename string) error {
 	return os.Chmod(filename, 0644)
 }
 
-func isValidPath(basePath, targetPath string) bool {
-	// 경로 정규화
-	basePath = filepath.Clean(basePath)
-	targetPath = filepath.Clean(targetPath)
-
-	// 대소문자 구분 없이 검사 (Windows의 경우)
-	if runtime.GOOS == "windows" {
-		basePath = strings.ToLower(basePath)
-		targetPath = strings.ToLower(targetPath)
-	}
-
-	return strings.HasPrefix(targetPath, basePath)
-}
-
 // 파일 타입 검사 헬퍼 함수들
 func isImage(filename string) bool {
 	ext := strings.ToLower(filepath.Ext(filename))

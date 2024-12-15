@@ -2,7 +2,6 @@ package fileserver
 
 import (
 	"encoding/base64"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -58,40 +57,66 @@ func (s *FileServer) UploadBase64Handler(c *gin.Context) {
 		return
 	}
 
-	fileType := "others"
-	if isImage(req.Filename) {
-		fileType = "images"
-	} else if isVideo(req.Filename) {
-		fileType = "videos"
+	// 파일 크기 체크
+	if len(fileData) > MaxFileSize {
+		c.JSON(http.StatusBadRequest, Response{
+			IsOk:  false,
+			Error: "File size exceeds limit",
+		})
+		return
 	}
 
-	uploadPath := getUploadPath(s.uploadPath, fileType)
-	filename := filepath.Join(uploadPath, req.Filename)
+	// 안전한 파일명 생성
+	safeFilename := generateSafeFileName(req.Filename)
 
-	// 파일 생성
-	file, err := os.Create(filename)
+	// 임시 파일 생성하여 MIME 타입 체크
+	tempFile, err := os.CreateTemp("", "upload-*")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			IsOk:  false,
-			Error: "Failed to create file",
+			Error: "Failed to process file",
 		})
 		return
 	}
-	defer file.Close()
+	defer os.Remove(tempFile.Name())
+	defer tempFile.Close()
 
-	// 디코딩된 데이터를 파일에 쓰기
-	if _, err := io.Copy(file, strings.NewReader(string(fileData))); err != nil {
+	if _, err := tempFile.Write(fileData); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{
+			IsOk:  false,
+			Error: "Failed to process file",
+		})
+		return
+	}
+	tempFile.Seek(0, 0)
+
+	// 파일 타입 검증
+	fileType, err := validateFileContent(tempFile, safeFilename)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Response{
+			IsOk:  false,
+			Error: err.Error(),
+		})
+		return
+	}
+
+	uploadPath := getUploadPath(s.uploadPath, fileType)
+	filename := filepath.Join(uploadPath, safeFilename)
+
+	// 경로 검증
+	if !isValidPath(s.uploadPath, filename) {
+		c.JSON(http.StatusBadRequest, Response{
+			IsOk:  false,
+			Error: "Invalid file path",
+		})
+		return
+	}
+
+	// 파일 저장
+	if err := os.WriteFile(filename, fileData, 0644); err != nil {
 		c.JSON(http.StatusInternalServerError, Response{
 			IsOk:  false,
 			Error: "Failed to save file",
-		})
-		return
-	}
-
-	if err := setFilePermissions(filename); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{
-			IsOk:  false,
-			Error: "Failed to set file permissions",
 		})
 		return
 	}
@@ -100,8 +125,8 @@ func (s *FileServer) UploadBase64Handler(c *gin.Context) {
 		IsOk:    true,
 		Message: "File uploaded successfully",
 		Data: ResponseData{
-			Path:     filepath.Join(fileType, req.Filename),
-			Filename: req.Filename,
+			Path:     filepath.Join(fileType, safeFilename),
+			Filename: safeFilename,
 			FileType: fileType,
 		},
 	})
