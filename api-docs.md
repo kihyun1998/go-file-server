@@ -1,72 +1,38 @@
-# File Server API Documentation
+# 파일 서버 API 명세서
 
-## Base URL
+## 1. Base64 파일 업로드
+
+Base64로 인코딩된 파일을 서버에 업로드합니다.
+
+### 요청 정보
+- **URL**: `/upload/base64`
+- **Method**: POST
+- **Content-Type**: application/json
+
+### 요청 본문
+```json
+{
+    "fileData": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",  // Base64로 인코딩된 파일 데이터
+    "filename": "example.jpg"                                  // 원본 파일명
+}
 ```
-http://localhost:8080
-```
 
-## Upload Endpoints
-
-### 1. Upload File
-Upload a file using multipart/form-data.
-
-**Endpoint:** `POST /upload`
-
-**Content-Type:** `multipart/form-data`
-
-**Request Body:**
-- `file`: File to upload (form-data)
-
-**Response:**
+### 응답
+#### 성공 응답 (200 OK)
 ```json
 {
     "isOk": true,
     "message": "File uploaded successfully",
     "data": {
-        "path": "images/example.jpg",
-        "filename": "example.jpg",
-        "fileType": "images"
+        "path": "images/example.jpg",      // 저장된 파일 경로
+        "filename": "example.jpg",         // 저장된 파일명
+        "fileType": "images"              // 파일 유형 (images, videos)
     }
 }
 ```
 
-**Error Response:**
-```json
-{
-    "isOk": false,
-    "error": "Failed to read file"
-}
-```
-
-### 2. Upload Base64 File
-Upload a file using base64 encoded data.
-
-**Endpoint:** `POST /upload/base64`
-
-**Content-Type:** `application/json`
-
-**Request Body:**
-```json
-{
-    "fileData": "base64EncodedString",
-    "filename": "example.jpg"
-}
-```
-
-**Response:**
-```json
-{
-    "isOk": true,
-    "message": "File uploaded successfully",
-    "data": {
-        "path": "images/example.jpg",
-        "filename": "example.jpg",
-        "fileType": "images"
-    }
-}
-```
-
-**Error Response:**
+#### 실패 응답
+- **잘못된 요청 (400 Bad Request)**
 ```json
 {
     "isOk": false,
@@ -74,23 +40,54 @@ Upload a file using base64 encoded data.
 }
 ```
 
-## Download Endpoints
+- **서버 오류 (500 Internal Server Error)**
+```json
+{
+    "isOk": false,
+    "error": "Failed to save file"
+}
+```
 
-### 1. Download File
-Download a file directly.
+### 주의사항
+- 지원되는 이미지 형식: jpg, jpeg, png, gif
+- 지원되는 비디오 형식: mp4, avi, mov, wmv
+- 파일명에는 안전한 문자만 허용됨
+- Base64 데이터는 프리픽스(예: "data:image/jpeg;base64,")를 포함하거나 제외할 수 있음
 
-**Endpoint:** `GET /download/:type/:filename`
+## 2. 파일 다운로드
 
-**Parameters:**
-- `type`: File type (images, videos, others)
-- `filename`: Name of the file to download
+저장된 파일을 다운로드합니다.
 
-**Response:**
-- File will be downloaded directly
-- Content-Type will be set based on file type
-- Content-Disposition header will be set for attachment
+### 요청 정보
+- **URL**: `/download/:type/:filename`
+- **Method**: GET
+- **URL 파라미터**:
+  - type: 파일 유형 (images, videos)
+  - filename: 파일명
 
-**Error Response:**
+### 예시 URL
+```
+/download/images/example.jpg
+/download/videos/example.mp4
+```
+
+### 응답
+#### 성공 응답
+- **Content-Type**: 파일 유형에 따라 자동 설정
+  - 이미지: image/jpeg, image/png, image/gif
+  - 비디오: video/mp4, video/x-msvideo
+- **Content-Disposition**: attachment; filename=파일명
+
+#### 실패 응답
+- **잘못된 요청 (400 Bad Request)**
+```json
+{
+    "isOk": false,
+    "error": "Invalid file type"
+}
+```
+
+- **파일 없음 (404 Not Found)**
 ```json
 {
     "isOk": false,
@@ -98,59 +95,26 @@ Download a file directly.
 }
 ```
 
-### 2. Download Base64 File
-Download a file with base64 encoding.
+## 3. 다운로드 페이지
 
-**Endpoint:** `GET /download/base64/:type/:filename`
+파일 다운로드를 위한 웹 페이지를 제공합니다.
 
-**Parameters:**
-- `type`: File type (images, videos, others)
-- `filename`: Name of the file to download
+### 요청 정보
+- **URL**: `/page/download/:filename`
+- **Method**: GET
+- **URL 파라미터**:
+  - filename: 파일명
 
-**Response:**
-- File data will be sent with appropriate Content-Type header
-- Content-Disposition header will be set for attachment
-
-**Error Response:**
-```json
-{
-    "isOk": false,
-    "error": "File not found"
-}
+### 예시 URL
+```
+/page/download/example.jpg
 ```
 
-## File Types
-The server automatically categorizes files into the following types:
-- `images`: .jpg, .jpeg, .png, .gif
-- `videos`: .mp4, .avi, .mov, .wmv
-- `others`: Any other file type
+### 응답
+- **Content-Type**: text/html
+- 파일 다운로드를 위한 HTML 페이지가 반환됩니다.
 
-## Additional Information
-
-### CORS Configuration
-- Allows all origins
-- Allowed Methods: GET, POST, OPTIONS
-- Allowed Headers: Origin, Content-Type, Accept
-
-### File Size Limits
-- No file size limit is set (`MaxMultipartMemory = 0`)
-
-### Storage Location
-- Files are stored in the `./uploads` directory
-- Subdirectories are automatically created for different file types:
-  - `./uploads/images`
-  - `./uploads/videos`
-  - `./uploads/others`
-
-### File Permissions
-- Linux: 755 for directories, 644 for files
-- Windows: 666 for both directories and files
-
-### Error Handling
-All endpoints return standardized error responses in the following format:
-```json
-{
-    "isOk": false,
-    "error": "Error message description"
-}
-```
+### 주의사항
+- 모든 API 엔드포인트는 CORS가 활성화되어 있음
+- 파일 크기 제한이 해제되어 있으나, 서버 리소스를 고려하여 적절한 크기의 파일만 업로드 권장
+- 모든 파일 경로는 서버의 보안을 위해 검증됨
