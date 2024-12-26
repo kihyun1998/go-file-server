@@ -21,7 +21,7 @@ func main() {
 	r.Static("/static", "./static")
 
 	// HTML 템플릿 로드
-	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob("page/*")
 
 	// CORS 설정
 	config := cors.DefaultConfig()
