@@ -38,19 +38,11 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
-.frame-message {
-    color: #fff;
-    text-align: center;
-    font-size: 10px;
-    margin-bottom: 12px;
-    opacity: 0.9;
-    font-weight: 400;
-}
 
 .preview-container {
     margin: 0;
     position: relative;
-    height: 100%;
+    min-height: 200px; /* 추가 */
     background: #3B4677;
     border-radius: 8px;
     overflow: hidden;
@@ -59,6 +51,7 @@ body {
     align-items: center;
     justify-content: center;
 }
+
 
 .preview-image, .preview-video {
     width: 100%;
@@ -79,7 +72,6 @@ body {
     transform: translate(-50%, -50%);
     width: 100%;
 }
-
 
 
 .button-container {
@@ -175,10 +167,6 @@ body {
         width: 90%;
     }
     
-    .frame-message {
-        font-size: 8px;
-        margin-bottom: 10px;
-    }
     
     .button-container {
         gap: 10px;
