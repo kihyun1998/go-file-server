@@ -28,14 +28,22 @@
                 <button class="download-btn photo-btn" id="photoBtn" onclick="downloadFile('images')" disabled>
                     사진 다운로드
                 </button>
-                <button class="download-btn video-btn" id="videoBtn" onclick="downloadFile('videos')" disabled>
+                <button class="download-btn video-btn" id="videoBtn" onclick="showComingSoonDialog()" disabled>
                     동영상 다운로드
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Coming Soon Dialog -->
+    <div id="comingSoonDialog" class="dialog-overlay">
+        <div class="dialog-content">
+            <h2 class="dialog-title">To be continued...</h2>
+            <p class="dialog-description">2025년 샤축을 기대해주세요 !</p>
+            <button class="dialog-button" onclick="closeDialog()">기대할게요 !</button>
+        </div>
+    </div>
+
     <script src="/static/js/loading.js"></script>
-    </script>
 </body>
 </html>

@@ -38,11 +38,10 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
-
 .preview-container {
     margin: 0;
     position: relative;
-    min-height: 200px; /* 추가 */
+    min-height: 200px;
     background: #3B4677;
     border-radius: 8px;
     overflow: hidden;
@@ -51,7 +50,6 @@ body {
     align-items: center;
     justify-content: center;
 }
-
 
 .preview-image, .preview-video {
     width: 100%;
@@ -72,7 +70,6 @@ body {
     transform: translate(-50%, -50%);
     width: 100%;
 }
-
 
 .button-container {
     display: flex;
@@ -109,6 +106,7 @@ body {
     font-size: 14px;
     text-align: center;
 }
+
 .loading {
     display: flex;
     flex-direction: column;
@@ -157,6 +155,60 @@ body {
     color: rgba(255, 255, 255, 0.9);
 }
 
+/* Dialog Styles */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.dialog-content {
+    background: #3B4677;
+    padding: 36px 24px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 300px;
+    color: #ffffff;
+    text-align: center;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.dialog-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #ffffff;
+}
+
+.dialog-description {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.dialog-button {
+    background-color: #2C3666;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dialog-button:hover {
+    background-color: #232B52;
+}
+
 @media (max-width: 480px) {
     .container {
         padding: 12px;
@@ -167,7 +219,6 @@ body {
         width: 90%;
     }
     
-    
     .button-container {
         gap: 10px;
     }
@@ -175,5 +226,22 @@ body {
     .download-btn {
         padding: 12px 16px;
         font-size: 13px;
+    }
+
+    .dialog-content {
+        padding: 20px;
+    }
+
+    .dialog-title {
+        font-size: 18px;
+    }
+
+    .dialog-description {
+        font-size: 14px;
+    }
+
+    .dialog-button {
+        padding: 10px 20px;
+        font-size: 14px;
     }
 }

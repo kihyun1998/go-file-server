@@ -3,6 +3,16 @@ const VIDEO_EXTENSIONS = ["mp4", "avi", "mov", "wmv"];
 let currentFileType = null;
 let currentExtension = null;
 
+function showComingSoonDialog() {
+  const dialog = document.getElementById("comingSoonDialog");
+  dialog.style.display = "flex";
+}
+
+function closeDialog() {
+  const dialog = document.getElementById("comingSoonDialog");
+  dialog.style.display = "none";
+}
+
 async function checkFileExists(type, filename, extensions) {
   for (const ext of extensions) {
     try {
@@ -37,7 +47,7 @@ async function loadPreview() {
   previewError.style.display = "none";
   loadingSpinner.style.display = "flex";
   photoBtn.disabled = true;
-  videoBtn.disabled = true;
+  videoBtn.disabled = false;
   photoBtn.classList.remove("active");
   videoBtn.classList.remove("active");
   previewMessage.textContent = "";
@@ -53,7 +63,6 @@ async function loadPreview() {
     previewImage.onload = () => {
       loadingSpinner.style.display = "none";
       previewImage.style.display = "block";
-      // 약간의 지연 후 페이드인 효과 적용
       setTimeout(() => {
         previewImage.classList.add("loaded");
       }, 50);
@@ -67,7 +76,7 @@ async function loadPreview() {
     return;
   }
 
-  // 비디오 체크
+  // 비디오 체크 및 버튼 활성화
   const videoResult = await checkFileExists(
     "videos",
     filename,
@@ -76,7 +85,6 @@ async function loadPreview() {
   if (videoResult.exists) {
     previewVideo.src = `/download/videos/${filename}.${videoResult.extension}`;
     previewVideo.style.display = "block";
-    // 약간의 지연 후 페이드인 효과 적용
     setTimeout(() => {
       previewVideo.classList.add("loaded");
     }, 50);
@@ -87,6 +95,10 @@ async function loadPreview() {
     currentFileType = "videos";
     currentExtension = videoResult.extension;
     return;
+  } else {
+    // 비디오가 없어도 버튼은 활성화 (Coming Soon 다이얼로그를 위해)
+    videoBtn.disabled = false;
+    videoBtn.classList.add("active");
   }
 
   showError();
@@ -118,3 +130,12 @@ async function downloadFile(type) {
 
 // 페이지 로드 시 미리보기 시작
 window.onload = loadPreview;
+
+// 다이얼로그 외부 클릭 시 닫기
+document
+  .getElementById("comingSoonDialog")
+  .addEventListener("click", function (e) {
+    if (e.target === this) {
+      closeDialog();
+    }
+  });
